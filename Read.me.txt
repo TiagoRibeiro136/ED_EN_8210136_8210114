@@ -1,0 +1,9 @@
+Capture the flag
+Trabalho realizado por:
+
+Ricardo Magalhães 8210114
+Tiago Ribeiro 8210136
+
+Comando para executar:
+
+gradle build run
