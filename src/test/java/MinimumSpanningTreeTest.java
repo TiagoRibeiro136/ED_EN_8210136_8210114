@@ -17,7 +17,7 @@ public class MinimumSpanningTreeTest {
     private MinimumSpanningTree minimumSpanningTree;
     private Map gameMap;
 
-    Bot currentBot = new Bot("Bot 1", minimumSpanningTree, flag, false);
+    Bot currentBot = new Bot("Bot 1", minimumSpanningTree, flag);
 
     @BeforeEach
     void setUp() throws MapException, UnknownPathException {

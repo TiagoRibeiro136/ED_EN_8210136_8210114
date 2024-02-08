@@ -20,12 +20,13 @@ public class LongestPathTest {
     void setUp() throws MapException, UnknownPathException {
         // Initialize the game map and the LongestPath object
         gameMap = new Map();
-        // You need to provide proper initialization for the Map object or use a mock object
+        // You need to provide proper initialization for the Map object or use a mock
+        // object
         gameMap.importarMapaDeArquivo("Mapa.txt");
         longestPath = new LongestPath(gameMap);
 
         // Initialize the current bot
-        currentBot = new Bot("Bot 1", longestPath, flag, false);
+        currentBot = new Bot("Bot 1", longestPath, flag);
     }
 
     @Test

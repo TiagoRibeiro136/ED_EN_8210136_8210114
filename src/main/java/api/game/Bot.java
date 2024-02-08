@@ -7,51 +7,69 @@ import api.game.interfaces.IFlag;
 
 public class Bot implements IBot, IFlag {
 
-    /** bot name */
+    /**
+     * bot name
+     */
     private String name;
-    /** bot last index on graph*/
+    /**
+     * bot last index on graph
+     */
     private int lastPosition;
-    /** bot index on graph*/
+    /**
+     * bot index on graph
+     */
     private int currentPosition;
 
-    /** bot algorithm */
+    /**
+     * bot algorithm
+     */
     private IAlgorithm algorithm;
-    /** bot enemy flag */
+    /**
+     * bot enemy flag
+     */
     private Flag enemy;
 
     /**
-     *count number of moves
+     *
      */
     private int count;
     private boolean hasflag;
+
     /**
      *
      * @param name
      * @param algorithm
      * @param enemy
      */
-        public Bot(String name,IAlgorithm algorithm,Flag enemy,boolean hasflag){
+    public Bot(String name, IAlgorithm algorithm, Flag enemy) {
         this.name = name;
         this.algorithm = algorithm;
         this.enemy = enemy;
-        this.hasflag=false;
+        this.hasflag = false;
+        this.count = 0;
     }
-    public Bot(String name,Flag enemy){
+
+    public Bot(String name, Flag enemy) {
         this.name = name;
         this.enemy = enemy;
-        this.hasflag=false;
+        this.hasflag = false;
     }
+
+    public Bot() {
+    }
+
     /**
      * move bot using chosed algorithm.
+     *
      * @return new bot position;
      */
     @Override
     public int move() throws EmptyCollectionException {
-        if(algorithm !=null){
-            int newPosition = algorithm.getNextPosition(currentPosition,enemy.getIndex(),this);
-            if (newPosition != currentPosition){
-                setPosition(newPosition);
+        if (algorithm != null) {
+            int newPosition = algorithm.getNextPosition(currentPosition, enemy.getIndex(), this);
+            if (newPosition != currentPosition) {
                 count++;
+                setPosition(newPosition);
             }
             return currentPosition;
         }
@@ -96,7 +114,7 @@ public class Bot implements IBot, IFlag {
      */
     @Override
     public void setEnemyFlag(Flag enemy) {
-        this.enemy=enemy;
+        this.enemy = enemy;
 
     }
 
@@ -122,13 +140,14 @@ public class Bot implements IBot, IFlag {
 
     /**
      * Bot position on graph;
+     *
      * @param currentPosition .
      */
-    public void setPosition(int currentPosition){
-        if(count==0){
+    public void setPosition(int currentPosition) {
+        if (count == 0) {
             this.lastPosition = currentPosition;
             this.currentPosition = currentPosition;
-        }else {
+        } else {
             this.lastPosition = this.currentPosition;
             this.currentPosition = currentPosition;
         }
@@ -140,28 +159,24 @@ public class Bot implements IBot, IFlag {
      * @return bot current position on graph.
      */
     @Override
-    public int getCurrentPosition(){
+    public int getCurrentPosition() {
         return currentPosition;
     }
 
-    public int VerifyFlag(){
-        if(!hasflag){
+    public int VerifyFlag() {
+        if (!hasflag) {
             return 0;
-        }else{
+        } else {
             return 1;
         }
     }
 
-    /**
-     *
-     * @param bot
-     * @param state
-     * @return
-     */
-    public boolean Hasflag(Bot bot,boolean state) {
-
-        bot.hasflag = state;
-        return true;
+    public boolean Hasflag(Bot bot) {
+        if (bot.currentPosition == enemy.getIndex()) {
+            bot.hasflag = true;
+            return true;
+        }
+        return false;
     }
 
     /**

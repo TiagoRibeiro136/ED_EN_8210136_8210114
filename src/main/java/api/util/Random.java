@@ -1,20 +1,20 @@
 package api.util;
 
 /**
- * Class used for generating random numbers.
+ * Classe utilizada para geração de números aleatórios.
  */
 public class Random {
 
     /**
-     * Generates a random integer within the range [min, max].
+     * Gera um número inteiro aleatório no intervalo [min, max].
      *
-     * @param min Minimum value of the range.
-     * @param max Maximum value of the range.
-     * @return A random integer within the range [min, max].
+     * @param min Valor mínimo do intervalo.
+     * @param max Valor máximo do intervalo.
+     * @return Um número inteiro aleatório no intervalo [min, max].
      */
     public static int generateRandomNumber(long min, long max) {
 
-        // Generates a random number using the appropriate formula
+        // Gera um número aleatório usando a fórmula apropriada
         int randomInt = (int) Math.floor(Math.random() * (max - min + 1) + min);
 
         return randomInt;

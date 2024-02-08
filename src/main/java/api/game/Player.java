@@ -6,19 +6,29 @@ import api.Structures.java.exceptions.EmptyCollectionException;
 import api.game.interfaces.IFlag;
 import api.game.interfaces.IPlayer;
 
-
 public class Player implements IPlayer {
 
-    /** Player name. */
+    /**
+     * Player name.
+     */
     private String name;
 
-    /** Bots Queue that defines who´s the next bot playing. */
+    /**
+     * Bots Queue that defines who´s the next bot playing.
+     */
     private QueueADT<Bot> bots;
 
-    /** Player´s flag. */
+    private int STUCK_RANGE;
+    private int stuckCount;
+
+    /**
+     * Player´s flag.
+     */
     private Flag flag;
 
-    /** Enemy´s flag. */
+    /**
+     * Enemy´s flag.
+     */
     private Flag enemyFlag;
 
     public Player(String name, Flag flag, Flag enemyFlag, Bot[] bots) {
@@ -26,14 +36,19 @@ public class Player implements IPlayer {
         this.bots = new LinkedQueue<>();
         this.flag = flag;
         this.enemyFlag = enemyFlag;
+        defineStuckRange(bots.length);
         assignBot(bots);
         enqueueBots(bots);
 
     }
-    public Player(){}
+
+    public Player() {
+    }
+
     /**
-     * Assigns the initial position to all player's bots based on the flag's position.
-     * At the beginning of the game, all bots should be located at the same position as their player's flag.
+     * Assigns the initial position to all player's bots based on the flag's
+     * position. Topic 5 - At the beginning of the game, all bots should be
+     * located at the same position as their player's flag.
      *
      * @param bots The array of bots to be positioned.
      * @return The array of bots with initial positions assigned.
@@ -91,71 +106,124 @@ public class Player implements IPlayer {
 
     /**
      * Associate enemy flag with the bot who conquer it
+     *
      * @param bot
      * @return
      */
     @Override
     public boolean conquerFlag(Bot bot) {
-        int enemyFlagPosition = enemyFlag.getIndex();
-        bot.Hasflag(bot,true);
-        return bot.getCurrentPosition() == enemyFlagPosition;
+        if (bot.Hasflag(bot)) {
+            return true;
+        }
+        return false;
     }
 
     /**
      * Update the flag position
+     *
      * @param bot
      * @param flag
      * @return
      */
     @Override
-    public boolean updateFlag(Bot bot, IFlag flag){
+    public boolean updateFlag(Bot bot, IFlag flag) {
         int botPos = bot.getCurrentPosition();
-        enemyFlag.setIndex(botPos) ;
+        enemyFlag.setIndex(botPos);
         return true;
     }
 
     /**
-     * Verifies if bot who contains the enemy flag is in the same position as the enemy bot
+     * Verifies if bot who contains the enemy flag is in the same position as
+     * the enemy bots
+     *
      * @param bot
      * @param bot2
      * @return
      */
     @Override
-    public boolean verifyFlag(Bot bot, Bot bot2){
-        int botpos1 = bot.getCurrentPosition();
-        int botpos2 = bot.getCurrentPosition();
-        if(bot.Hasflag(bot,true)||botpos1==botpos2){
-            bot.Hasflag(bot,false);
-        }
-        return true;
+    public boolean verifyFlag(Bot bot, Player player2) throws EmptyCollectionException {
+        int i = 0;
+        do {
+            Bot enemyBot = player2.bots.dequeue();
+            if (bot.Hasflag(bot) && bot.getCurrentPosition() == enemyBot.getCurrentPosition()) {
+                return true;
+            }
+            i++;
+        } while (i < player2.bots.size());
+
+        return false;
     }
 
     /**
      * Return the flag to the origin base
+     *
      * @param flag
      * @param position
      */
     @Override
-    public void returnBase(IFlag flag, Flag position){
-        flag.setIndex(position.getIndex());
+    public void returnBase(IFlag flag, int position) {
+        flag.setIndex(position);
     }
-
-
 
     /**
      * Checks if the game has ended, i.e., if the bot reached the enemy flag.
-     * The game ends when one of the bots reaches the opponent's field and come back to his own base.
+     * Topic 8 - The game ends when one of the bots reaches the opponent's field
+     * and come back to his own base.
      *
      * @param bot The bot whose position will be checked against the enemy flag.
-     * @return true if the bot reached the enemy flag and come back to his own base, false otherwise.
+     * @return true if the bot reached the enemy flag and come back to his own
+     * base, false otherwise.
      */
     @Override
     public boolean checkEndGame(Bot bot) {
-        if (conquerFlag(bot) && bot.getCurrentPosition() == flag.getIndex()) {
-            return true;
-        } else {
-            return false;
+        return (bot.getCurrentPosition() == enemyFlag.getIndex());
+
+    }
+
+    private void defineStuckRange(int numBots) {
+        int stuckRange;
+
+        switch (numBots) {
+            case 1:
+                stuckRange = 2;
+                break;
+            case 2:
+                stuckRange = 4;
+                break;
+            case 3:
+                stuckRange = 7;
+                break;
+            case 4:
+                stuckRange = 10;
+                break;
+            default:
+                stuckRange = 10;
+                break;
         }
+
+        this.STUCK_RANGE = stuckRange;
+    }
+
+    @Override
+    public int getStuckCount() {
+        return stuckCount;
+    }
+
+    @Override
+    public void incrementStuckCount() {
+        stuckCount++;
+    }
+
+    @Override
+    public void decrementStuckCount() {
+        if (stuckCount > 0) {
+            stuckCount--;
+        }
+    }
+
+    @Override
+    public boolean isStuckCountReached() {
+        return stuckCount >= STUCK_RANGE;
     }
 
     /**
@@ -181,13 +249,16 @@ public class Player implements IPlayer {
     public void setName(String name) {
         this.name = name;
     }
+
     public void setBots(Bot[] bots) {
         this.bots = new LinkedQueue<>();
         enqueueBots(bots);
     }
+
     public void setFlag(Flag flag) {
         this.flag = flag;
     }
+
     public void setEnemyFlag(Flag flag) {
         this.enemyFlag = flag;
     }

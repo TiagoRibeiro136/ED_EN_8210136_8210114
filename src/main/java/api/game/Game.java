@@ -12,47 +12,57 @@ import api.game.interfaces.IGame;
 import api.game.interfaces.IPlayer;
 import api.util.Random;
 
-
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Game implements IGame,Runnable {
+public class Game implements IGame, Runnable {
 
-    /** The game map. */
-    private Map map=new Map();
+    /**
+     * The game map.
+     */
+    private Map map = new Map();
     /**
      *
      */
     public Scanner scanner = new Scanner(System.in).useLocale(Locale.US);
 
-    /** Player 1 and Player 2 */
+    /**
+     * Player 1 and Player 2
+     */
     private IPlayer currentPlayer, nextPlayer;
 
-    /** Index of the player whose turn it is. */
+    /**
+     * Index of the player whose turn it is.
+     */
     private int currentPlayerIndex;
 
-    /** Winning player. */
+    /**
+     * Winning player.
+     */
     private IPlayer winner;
 
     /**
      * Constructor of the Game class.
      *
-     * @param map     The game map.
+     * @param map The game map.
      * @param currentPlayer The first player.
      * @param nextPlayer The second player.
      */
-    public Game(Map map, IPlayer currentPlayer, IPlayer nextPlayer) {
+    public Game(Map map, Player currentPlayer, Player nextPlayer) {
         this.map = map;
         this.currentPlayer = currentPlayer;
         this.nextPlayer = nextPlayer;
         this.winner = null;
-
+        this.map.setVertice(currentPlayer.getEnemyFlag().getIndex(), currentPlayer.getEnemyFlag());
+        this.map.setVertice(nextPlayer.getEnemyFlag().getIndex(), nextPlayer.getEnemyFlag());
         this.currentPlayerIndex = Random.generateRandomNumber(0, 1);
     }
-    public Game(){}
+
+    public Game() {
+    }
 
     /**
      * Executes a round of the game for the specified player.
@@ -67,8 +77,16 @@ public class Game implements IGame,Runnable {
         currentBot = player.getNextBot();
         currentBotMoves = currentBot.getCount();
         currentBot.move();
-
-
+        if (currentBotMoves == currentBot.getCount()) {
+            player.incrementStuckCount();
+        } else {
+            player.decrementStuckCount();
+        }
+        /*
+        if (player.verifyFlag(currentBot, enemy) == true) {
+            returnFlag(player);
+        }
+         */
         // Check if the game has ended
         if (checkEndGame(currentBot, player)) {
             winner = player;
@@ -87,28 +105,35 @@ public class Game implements IGame,Runnable {
     public IPlayer nextTurn() {
         currentPlayerIndex = (currentPlayerIndex + 1) % 2; // Alternating between player 1 and player 2
 
+        IPlayer playerTurn = null;
+
         if (currentPlayerIndex == 0) {
-            return currentPlayer = nextPlayer;
+            playerTurn = currentPlayer;
         } else if (currentPlayerIndex == 1) {
-            return currentPlayer = nextPlayer;
+            playerTurn = nextPlayer;
         } else {
-            throw new RuntimeException("An error occurred while processing the player's turn");
+            throw new RuntimeException("Ocurreu um erro ao processar a vez do jogador");
         }
+
+        return playerTurn;
     }
 
     /**
      * Checks if the game has ended and who the winner is.
      *
-     * @return -1 if the game hasn't ended, 0 in case of a draw, 1 if player 1 won, 2 if player 2 won.
+     * @return -1 if the game hasn't ended, 0 in case of a draw, 1 if player 1
+     * won, 2 if player 2 won.
      */
     @Override
     public int isGameOver() {
-         if (winner == currentPlayer) {
+        if (currentPlayer.isStuckCountReached() && nextPlayer.isStuckCountReached()) {
+            return 0;
+        } else if (winner == currentPlayer) {
             return 1;
-        } else{
+        } else if (winner == nextPlayer) {
             return 2;
         }
-
+        return -1;
     }
 
     /**
@@ -118,7 +143,17 @@ public class Game implements IGame,Runnable {
      */
     @Override
     public IPlayer getCurrentPlayer() {
-        return currentPlayer;
+        IPlayer playerTurn = null;
+
+        if (currentPlayerIndex == 0) {
+            playerTurn = currentPlayer;
+        } else if (currentPlayerIndex == 1) {
+            playerTurn = nextPlayer;
+        } else {
+            throw new RuntimeException("Ocurreu um erro ao processar a vez do jogador");
+        }
+
+        return playerTurn;
     }
 
     /**
@@ -132,12 +167,13 @@ public class Game implements IGame,Runnable {
     }
 
     /**
-     * Checks if the game has ended, i.e., if the bot reached the enemy flag and take it to his own base.
+     * Checks if the game has ended, i.e., if the bot reached the enemy flag.
+     * Topic 8 - The game ends when one of the bots reaches the opponent's
+     * field.
      *
-     *
-     * @param bot    The bot whose position will be checked against the enemy flag.
+     * @param bot The bot whose position will be checked against the enemy flag.
      * @param player The player to whom the bot belongs.
-     * @return true if the bot reached the enemy flag and take it back to hiw own base, false otherwise.
+     * @return true if the bot reached the enemy flag, false otherwise.
      */
     @Override
     public boolean checkEndGame(Bot bot, IPlayer player) {
@@ -146,71 +182,91 @@ public class Game implements IGame,Runnable {
 
     /**
      * Update Flag´s position
+     *
      * @param bot
      * @param player
      * @param flag
      * @return
      */
     @Override
-    public  boolean updtateFlag(Bot bot, IPlayer player, IFlag flag) {
+    public boolean updateFlag(Bot bot, IPlayer player, IFlag flag) {
         return player.updateFlag(bot, flag);
     }
 
     /**
-     * Return enemy´s flag position to their base if opponent bot is in the same position as player1 bot.
-     * Return enemy´s flag position to their base if opponent bot is in the same position as player1 bot.
+     * Return enemy´s flag position to their base if opponent bot is in the same
+     * position as player1 bot. Return enemy´s flag position to their base if
+     * opponent bot is in the same position as player1 bot.
+     *
      * @param player1
      * @param player2
      * @throws EmptyCollectionException
      */
     @Override
-    public void returnFlag(IPlayer player1, IPlayer player2) throws EmptyCollectionException {
-        Flag flaginit1 = player1.getFlag();
-        Flag flaginit2 = player2.getFlag();
-        Flag flagEnemy1 =player1.getEnemyFlag();
-        Flag flagEnemy2 = player2.getEnemyFlag();
-        Bot bot1 = player1.getNextBot();
-        Bot bot2 = player2.getNextBot();
-        if(player1.verifyFlag(bot1,bot2)){
-            player1.returnBase(flagEnemy1,flaginit2);
-        }else if(player2.verifyFlag(bot2,bot1)){
-            player2.returnBase(flagEnemy2,flaginit1);
-        }
-
+    public void returnFlag(IPlayer player) throws EmptyCollectionException {
+        player.returnBase(player.getEnemyFlag(), player.getEnemyFlag().getIndex());
     }
 
-    /**
-     *
-     * @param menuOption
-     * @throws EmptyCollectionException
-     * @throws MapException
-     * @throws UnknownPathException
-     */
+    public void inputMenu(int menuOption) throws EmptyCollectionException, MapException, UnknownPathException {
+        Scanner scanner = new Scanner(System.in).useLocale(Locale.US);
+        switch (menuOption) {
+            case 1:
+                int nVertices,
+                 bidirecional;
+                double densidade;
+                do {
+                    System.out.println("Bidirecional? (1-Sim | 2-Nao) :");
+                    bidirecional = scanner.nextInt();
+                } while (bidirecional < 1 || bidirecional > 2);
+
+                do {
+                    System.out.println("Numero de Vertices(15 - 100): ");
+                    nVertices = scanner.nextInt();
+                } while (nVertices < 15 || nVertices > 100);
+                //do {
+                System.out.println("Densidade(0.50 - 0.80): ");
+                densidade = scanner.nextDouble();
+                //} while (densidade < 0.50 || densidade > 0.80);
+                if (bidirecional == 1) {
+                    map.gerarMapaAleatorio(nVertices, true, densidade);
+                } else {
+                    map.gerarMapaAleatorio(nVertices, false, densidade);
+                }
+                break;
+            case 2:
+                map.importarMapaDeArquivo("Mapa.txt");
+                break;
+        }
+    }
+
     public void inputGame(int menuOption) throws EmptyCollectionException, MapException, UnknownPathException {
-        Player player1 = new Player();
-        Player player2 = new Player();
+        String p1Name, p2Name;
+        Flag p1, p2, enemyP1, enemyP2;
+
         switch (menuOption) {
             case 1:
                 System.out.println("Nome jogador 1: ");
-                player1.setName(scanner.next());
+                p1Name = scanner.next();
                 System.out.println("Nome Jogador 2: ");
-                player2.setName(scanner.next());
-                System.out.println("(" + player1.getName() + ") Escolhe a posicao da Bandeira: ");
-                player1.setFlag(new Flag(scanner.nextInt()));
-                player2.setEnemyFlag(player1.getFlag());
-                System.out.println("(" + player2.getName() + ") Escolhe a posicao da Bandeira: ");
-                player2.setFlag(new Flag(scanner.nextInt()));
-                player1.setEnemyFlag(player2.getFlag());
-                System.out.println("(" + player1.getName() + ") Numero de Bots: ");
-                player1.setBots(inputBots(scanner.nextInt(), player1, player2));
-                System.out.println("(" + player2.getName() + ") Numero de Bots: ");
-                player2.setBots(inputBots(scanner.nextInt(), player2, player1));
-                Thread game = new Thread(new Game(map, player1, player2));
+                p2Name = scanner.next();
+                System.out.println("(" + p1Name + ") Escolhe a posicao da Bandeira: ");
+                p1 = new Flag(scanner.nextInt());
+                enemyP2 = p1;
+                System.out.println("(" + p2Name + ") Escolhe a posicao da Bandeira: ");
+                p2 = new Flag(scanner.nextInt());
+                enemyP1 = p2;
+                System.out.println("(" + p1Name + ") Numero de Bots: ");
+                Bot[] p1bots = inputBots(scanner.nextInt(), p1Name, enemyP1);
+                Player formatedPlayer1 = new Player(p1Name, p1, enemyP1, p1bots);
+                System.out.println("(" + p2Name + ") Numero de Bots: ");
+                Bot[] p2bots = inputBots(scanner.nextInt(), p2Name, enemyP2);
+                Player formatedPlayer2 = new Player(p2Name, p2, enemyP2, p2bots);
+                Thread game = new Thread(new Game(map, formatedPlayer1, formatedPlayer2));
                 game.start();
                 break;
             case 2:
                 int nVertices,
-                        bidirecional;
+                 bidirecional;
                 double densidade;
                 do {
                     System.out.println("Bidirecional? (1-Sim | 2-Nao) :");
@@ -239,39 +295,31 @@ public class Game implements IGame,Runnable {
         }
     }
 
-    /**
-     *
-     * @param nbots
-     * @param player
-     * @param enemy
-     * @return
-     */
-    public Bot[] inputBots(int nbots, Player player, Player enemy) {
+    public Bot[] inputBots(int nbots, String name, Flag enemy) {
         int option;
         Bot[] bots = new Bot[nbots];
         for (int i = 0; i < nbots; i++) {
-            Bot bot = new Bot("[ " + player.getName() + " -> Bot " + (i + 1) + "]", enemy.getFlag());
+            Bot bot = new Bot();
             do {
-                System.out.println("[ " + player.getName() + " -> Bot " + (i + 1) + "] Escolha o Algoritmo do bot");
+                System.out.println("[ " + name + " -> Bot " + (i + 1) + "] Escolha o Algoritmo do bot");
                 System.out.println("| 1 - Caminho mais curto | 2 - Caminho mais longo | 3 - Caminho com menos custo |");
                 option = scanner.nextInt();
             } while (option < 1 || option > 3);
             switch (option) {
                 case 1:
-                    bot.setAlgorithm(new ShortestPath(map));
+                    bot = new Bot("[ " + name + " -> Bot " + (i + 1) + "]", new ShortestPath(map), enemy);
                     break;
                 case 2:
-                    bot.setAlgorithm(new LongestPath(map));
+                    bot = new Bot("[ " + name + " -> Bot " + (i + 1) + "]", new LongestPath(map), enemy);
                     break;
                 case 3:
-                    bot.setAlgorithm(new MinimumSpanningTree(map));
+                    bot = new Bot("[ " + name + " -> Bot " + (i + 1) + "]", new MinimumSpanningTree(map), enemy);
                     break;
             }
             bots[i] = bot;
         }
         return bots;
     }
-
 
     @Override
     public void run() {
@@ -286,9 +334,9 @@ public class Game implements IGame,Runnable {
             } catch (EmptyCollectionException ex) {
                 Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
             }
-            System.out.println(currentPlayer.getName() + " tinha o bot " + currentBot.getName() + " no vertice "
+            System.out.println("[" + currentPlayer.getName() + "] -> (" + currentBot.getName() + ") no vertice "
                     + (currentBot.getLastPosition() + 1));
-            System.out.println(currentPlayer.getName() + " moveu o bot " + currentBot.getName() + " para o vertice "
+            System.out.println("[" + currentPlayer.getName() + "] -> (" + currentBot.getName() + ") para o vertice "
                     + (currentBot.getLastPosition() + 1) + "\n");
 
             try {
@@ -303,7 +351,7 @@ public class Game implements IGame,Runnable {
     }
 
     private void showEndGameMessages(IPlayer currentPlayer) {
-        System.out.println("Fim de jogo!!!");
+        System.out.println("Fim de jogo!");
 
         switch (isGameOver()) {
             case -1:
@@ -317,10 +365,9 @@ public class Game implements IGame,Runnable {
                 break;
 
             default:
-                System.out.println("Não é suposto vir para aqui");
+                System.out.println("");
                 break;
         }
 
     }
 }
-

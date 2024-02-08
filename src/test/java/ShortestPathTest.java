@@ -23,7 +23,7 @@ public class ShortestPathTest {
         gameMap = new Map();
         gameMap.importarMapaDeArquivo("Mapa.txt");
         shortestPath = new ShortestPath(gameMap);
-        currentBot = new Bot("Bot 1", shortestPath, flag, false);
+        currentBot = new Bot("Bot 1", shortestPath, flag);
     }
 
     @Test

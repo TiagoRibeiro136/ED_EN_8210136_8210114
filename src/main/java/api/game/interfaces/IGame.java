@@ -3,6 +3,7 @@ package api.game.interfaces;
 import api.Map.Map;
 import api.Structures.java.exceptions.EmptyCollectionException;
 import api.game.Bot;
+import api.game.Player;
 
 public interface IGame {
 
@@ -44,8 +45,8 @@ public interface IGame {
 
     boolean checkEndGame(Bot bot, IPlayer player);
 
-    boolean updtateFlag(Bot bot, IPlayer player, IFlag flag);
+    boolean updateFlag(Bot bot, IPlayer player, IFlag flag);
 
-    void returnFlag(IPlayer player1, IPlayer player2) throws EmptyCollectionException;
+    void returnFlag(IPlayer player1) throws EmptyCollectionException;
 }
 

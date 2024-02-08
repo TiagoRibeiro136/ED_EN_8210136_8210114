@@ -1,11 +1,9 @@
 package app;
 
-import api.Map.Map;
 import api.Structures.java.exceptions.EmptyCollectionException;
 import api.Structures.java.exceptions.MapException;
 import api.Structures.java.exceptions.UnknownPathException;
 import api.game.Game;
-
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -32,12 +30,12 @@ public class Index {
             menuOption = scanner.nextInt();
             if (menuOption == 3) {
                 System.exit(0);
-
             }
-            game.inputGame(menuOption);
+            game.inputMenu(menuOption);
         } while (menuOption < 1 || menuOption > 3);
         do {
-            System.out.println("| 1 -> Jogar | 2 -> Gerar Novo Mapa | 3 -> Exportar Mapa | 4 -> Importar Mapa |  5 -> Sair |");
+            System.out.println(
+                    "| 1 -> Jogar | 2 -> Gerar Novo Mapa | 3 -> Exportar Mapa | 4 -> Importar Mapa |  5 -> Sair |");
             menuOption = scanner.nextInt();
             game.inputGame(menuOption);
         } while (menuOption != 5);
