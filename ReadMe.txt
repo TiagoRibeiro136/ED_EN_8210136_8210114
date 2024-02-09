@@ -1,8 +1,6 @@
 Capture the flag
 
-Comando para executar:
-
-gradle build run
+Para executar : Ficheiro Index.java
 
 dificuldades encontradas:
 
