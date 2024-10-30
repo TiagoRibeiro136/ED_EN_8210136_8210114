@@ -12,4 +12,4 @@ os bots chegam á bandeira de modo a ser apresentado algo funcional.
 Trabalho realizado por:
 
 Ricardo Magalhães 8210114
-Tiago Ribeiro 8210136
+Tiago Ribeiro 8210136 
